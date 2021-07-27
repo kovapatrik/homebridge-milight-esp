@@ -1,0 +1,51 @@
+{
+  "_from": "homebridge-milight-esp",
+  "_id": "homebridge-milight-esp@1.1.0",
+  "_inBundle": false,
+  "_integrity": "sha512-Gzq6NNOOrlDIHufgaRIQjeU5vPsI/iE08b6Qgzt2grtLrxF3dIqtDYEhK5g/SLJ/oyKsVbu+u33XR4DNe2kwnQ==",
+  "_location": "/homebridge-milight-esp",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "tag",
+    "registry": true,
+    "raw": "homebridge-milight-esp",
+    "name": "homebridge-milight-esp",
+    "escapedName": "homebridge-milight-esp",
+    "rawSpec": "",
+    "saveSpec": null,
+    "fetchSpec": "latest"
+  },
+  "_requiredBy": [
+    "#USER"
+  ],
+  "_resolved": "https://registry.npmjs.org/homebridge-milight-esp/-/homebridge-milight-esp-1.1.0.tgz",
+  "_shasum": "72d541720b71b3b4e6ed160de0fbf0f7829bf6e7",
+  "_spec": "homebridge-milight-esp",
+  "_where": "/home/pi/Downloads",
+  "author": {
+    "name": "Jesper van den Ende"
+  },
+  "bundleDependencies": false,
+  "dependencies": {},
+  "deprecated": false,
+  "description": "Homebridge plugin for esp8266 milight hub",
+  "devDependencies": {},
+  "engines": {
+    "homebridge": ">=0.2.5",
+    "node": ">=6"
+  },
+  "homepage": "https://gitlab.com/jespertheend/homebridge-milight-esp",
+  "keywords": [
+    "homebridge",
+    "homebridge-plugin",
+    "milight",
+    "esp"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "name": "homebridge-milight-esp",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.1.0"
+}
