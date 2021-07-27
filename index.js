@@ -1,12 +1,6 @@
-const http = require("http");
-const colorsys = require("colorsys");
 const mqtt = require("mqtt");
 
 let Service, Characteristic;
-
-async function timeoutPromise(ms){
-  return await new Promise(r => setTimeout(r, ms));
-}
 
 module.exports = function(homebridge){
   Service = homebridge.hap.Service;
@@ -52,8 +46,6 @@ function MiLightPlatform(log, config) {
       });
     });
   }
-
-  
 }
 
 
@@ -181,73 +173,3 @@ MiLightAccessory.prototype.getServices = function() {
 
   return [this.informationService, this.lightbulbService];
 }
-/*
-MiLightAccessory.prototype.setBrightness = function(level, callback) {
-  if (level === 0) {
-    this.log("[" + this.name + "] Setting brightness to 0 (off)");
-    this.lightbulbService.setCharacteristic(Characteristic.On, false);
-  } else if (level <= 5) {
-    
-    var send = {effect: "night_mode"};
-
-    this.light.sendCommands(this.commands[this.type].off(this.zone));
-    // Ensure we're pausing for 100ms between these commands as per the spec
-    this.light.pause(100);
-    this.light.sendCommands(this.commands[this.type].nightMode(this.zone));
-
-    // Manually clear last bulb sent so that "on" is sent when we next interact with this bulb
-    this.lastSent.bulb = null;
-
-  } else {
-    // Send on command to ensure we're addressing the right bulb
-    this.lightbulbService.setCharacteristic(Characteristic.On, true);
-
-    this.log("[" + this.name + "] Setting brightness to %s", level);
-
-    // If bulb supports it, set the absolute brightness specified
-    if (["rgb", "white"].indexOf(this.type) === -1) {
-      if (this.version === "v6" && this.type !== "bridge") {
-        this.light.sendCommands(this.commands[this.type].brightness(this.zone, level));
-      } else {
-        this.light.sendCommands(this.commands[this.type].brightness(level));
-      }
-    } else {
-      // If this is an rgb or a white bulb, they only support brightness up and down.
-      if (this.type === "white" && level === 100) {
-        // But the white bulbs do have a "maximum brightness" command
-        this.light.sendCommands(this.commands[this.type].maxBright(this.zone));
-        this.brightness = 100;
-      } else {
-        // We're going to send the number of brightness up or down commands required to get to get from
-        // the current value that HomeKit knows to the target value
-
-        // Keeping track of the value separately from Homebridge so we know when to change across multiple small adjustments
-        if (this.brightness === -1) this.brightness = this.lightbulbService.getCharacteristic(Characteristic.Brightness).value;
-        var currentLevel = this.brightness;
-
-        var targetDiff = level - currentLevel;
-        var targetDirection = Math.sign(targetDiff);
-        targetDiff = Math.max(0, (Math.round(Math.abs(targetDiff) / 10))); // There are 10 steps of brightness
-
-        if (targetDirection === 0 || targetDirection === -0 || targetDiff === 0) {
-          this.log("[" + this.name + "] Change not large enough to move to next step for bulb");
-        } else {
-          this.log.debug("[" + this.name + "] Setting brightness to internal value %d (%d steps away)", Math.round(currentLevel / 10), targetDiff);
-
-          this.brightness = level;
-
-          for (; targetDiff > 0; targetDiff--) {
-            if (targetDirection === 1) {
-              this.light.sendCommands(this.commands[this.type].brightUp(this.zone));
-              this.log.debug("[" + this.name + "] Sending brightness up command");
-            } else if (targetDirection === -1) {
-              this.light.sendCommands(this.commands[this.type].brightDown(this.zone));
-              this.log.debug("[" + this.name + "] Sending brightness down command");
-            }
-          }
-        }
-      }
-    }
-  }
-  callback(null);
-}; */
