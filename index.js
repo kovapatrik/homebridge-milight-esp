@@ -6,7 +6,7 @@ module.exports = function(homebridge){
   Service = homebridge.hap.Service;
   Characteristic = homebridge.hap.Characteristic;
 
-  homebridge.registerPlatform("milight-esp-hub", "MiLightEsp", MiLightPlatform);
+  homebridge.registerPlatform("milight-esp-hub-mqtt", "MiLightEsp", MiLightPlatform);
 }
 
 function MiLightPlatform(log, config) {
