@@ -18,7 +18,8 @@
     "esp"
   ],
   "devDependencies": {
-    "homebridge": "^1.3.1"
+    "homebridge": "^1.3.1",
+    "mqtt": "^4.2.8"
   },
   "author": "Kovalovszky Patrik",
   "license": "MIT"
