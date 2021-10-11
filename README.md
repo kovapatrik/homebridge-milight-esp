@@ -27,8 +27,8 @@ A Homebridge plugin for the [ESP8266 MiLight Hub](https://github.com/sidoh/esp82
 		{
 		    "mainAlias": <NAME_OF_THE_GROUP>,
 		    "aliases": [
-			<NAME_OF_LIGHT1>,
-			<NAME_OF_LIGHT2>,
+			<NAME_OF_LIGHT_1>,
+			<NAME_OF_LIGHT_2>,
 			...
 		    ]
 		}
@@ -36,3 +36,4 @@ A Homebridge plugin for the [ESP8266 MiLight Hub](https://github.com/sidoh/esp82
 	}
 ]
 ```
+- You should name your lights on the ESP HUB web interface, and use that names here.
