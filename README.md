@@ -1,4 +1,4 @@
-This is a Homebridge plugin for the [esp8266 milight hub](https://github.com/sidoh/esp8266_milight_hub).
+A Homebridge plugin for the [ESP8266 MiLight Hub](https://github.com/sidoh/esp8266_milight_hub).
 
 # Features
 
