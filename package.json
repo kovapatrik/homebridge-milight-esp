@@ -1,5 +1,5 @@
 {
-  "name": "homebridge-milight-esp",
+  "name": "homebridge-milight-esp-mqtt",
   "description": "Homebridge Plugin for ESP8266 MiLight Hub",
   "version": "1.0.0",
   "scripts": {
@@ -8,7 +8,7 @@
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/kovapatrik/homebridge-milight-esp.git"
+    "url": "https://github.com/kovapatrik/homebridge-milight-esp-mqtt.git"
   },
   "engines": {
     "homebridge": ">=0.2.5",
