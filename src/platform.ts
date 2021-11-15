@@ -121,7 +121,7 @@ export class MiLightPlatform implements DynamicPlatformPlugin {
     const splitted = topic.split('/');
     const device_id = splitted[2];
     const group_id = Number(splitted[4]);
-    const group = this.config.groups.find(g => 'ids_to_sync' in g && g.ids_to_sync.includes(device_id));
+    const group = this.config.groups.find(g => 'ids_to_listen_on' in g && g.ids_to_listen_on.includes(device_id));
 
     if (group) {
       const devices_to_update = group_id === 0 ? [group.name, ...group.aliases] : [group.aliases[group_id-1]];

@@ -48,10 +48,32 @@
       "groups": {
         "title": "Groups",
         "type": "array",
+        "required": true,
         "items": {
           "type": "object",
           "properties": {
-            
+            "name": {
+              "title": "Group Name (main switch)",
+              "type": "string",
+              "required": true
+            },
+            "aliases": {
+              "title": "Aliases (light names)",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "required": true,
+              "uniqueItems": true,
+              "maxItems": 4
+            },
+            "ids_to_listen_on": {
+              "title": "IDs to listen on to update current group's state",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           }
         }
       }
