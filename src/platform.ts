@@ -69,6 +69,8 @@ export class MiLightPlatform implements DynamicPlatformPlugin {
 
           new MiLightAccessory(this, existingAccessory, device);
 
+          this.accessories.push(existingAccessory);
+
         } else {
           this.log.info('Adding new accessory:', device);
 
