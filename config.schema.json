@@ -57,6 +57,11 @@
               "type": "string",
               "required": true
             },
+            "sync": {
+              "title": "Sync main switch with all light switches",
+              "type": "boolean",
+              "default": true
+            },
             "aliases": {
               "title": "Aliases (light names)",
               "type": "array",

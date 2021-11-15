@@ -1,7 +1,7 @@
 {
   "name": "homebridge-milight-esp-mqtt",
   "displayName": "Homebridge MiLight ESP MQTT",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Homebridge Plugin with MQTT for ESP8266 MiLight Hub",
   "license": "MIT",
   "repository": {
@@ -23,7 +23,8 @@
     "homebridge",
     "homebridge-plugin",
     "milight",
-    "esp"
+    "esp",
+    "mqtt"
   ],
   "dependencies": {
     "mqtt": "^4.2.8"
