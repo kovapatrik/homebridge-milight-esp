@@ -67,7 +67,7 @@ export class MiLightPlatform implements DynamicPlatformPlugin {
         // the accessory already exists
           this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
 
-          new MiLightAccessory(this, existingAccessory, device);
+          new MiLightAccessory(this, existingAccessory, device, group.sync && device === group.name);
 
           this.accessories.push(existingAccessory);
 
@@ -76,7 +76,7 @@ export class MiLightPlatform implements DynamicPlatformPlugin {
 
           const accessory = new this.api.platformAccessory(device, uuid);
 
-          new MiLightAccessory(this, accessory, device);
+          new MiLightAccessory(this, accessory, device, group.sync && device === group.name);
 
           accessoriesToRegister.push(accessory);
           this.accessories.push(accessory);
@@ -103,7 +103,7 @@ export class MiLightPlatform implements DynamicPlatformPlugin {
         if (!err) {
           this.log.debug('MQTT subscription succeed!');
           this.mqtt_client.on('message', (topic, message) => {
-            this.synchronizeStates(JSON.parse(message.toString()), topic);
+            this.synchronizeStatesMQTT(JSON.parse(message.toString()), topic);
           });
         } else {
           this.log.error('MQTT subscription failed.');
@@ -116,44 +116,64 @@ export class MiLightPlatform implements DynamicPlatformPlugin {
     });
   }
 
-  async synchronizeStates(message: object, topic: string) {
+  // Synchronize state updates coming from another remotes (ids defined in config)
+  async synchronizeStatesMQTT(message: object, topic: string) {
     const splitted = topic.split('/');
     const device_id = splitted[2];
     const group_id = Number(splitted[4]);
-    const changed_key = Object.keys(message)[0];
-    const group = this.config.groups.find(g => ('ids_to_sync' in g && g.ids_to_sync.includes(device_id)) || (g.device_id === device_id && group_id === 0));
+    const group = this.config.groups.find(g => 'ids_to_sync' in g && g.ids_to_sync.includes(device_id));
 
     if (group) {
-      const devices_to_update = group_id === 0 ? group.aliases : [group.aliases[group_id-1]];
-      this.log.debug('Sync ' + devices_to_update.toString());
-      for (const device of devices_to_update) {
-        const existingAccessory = this.accessories.find(accessory => accessory.displayName === device);
-        if (existingAccessory) {
-          const current_service = existingAccessory.getService(this.Service.Lightbulb);
-          switch(changed_key) {
-            case 'state':
-              current_service!.getCharacteristic(this.Characteristic.On).updateValue(message[changed_key] === 'ON' ? 1 : 0);
-              existingAccessory.context.state = message[changed_key] === 'ON' ? 1 : 0;
-              break;
-            case 'brightness':
-              current_service!.getCharacteristic(this.Characteristic.Brightness).updateValue(Math.round(message[changed_key] / 2.55));
-              existingAccessory.context.brightness = Math.round(message[changed_key] / 2.55);
-              break;
-            case 'hue':
-              current_service!.getCharacteristic(this.Characteristic.Hue).updateValue(message[changed_key]);
-              existingAccessory.context.hue = message[changed_key];
-              break;
-            case 'saturation':
-              current_service!.getCharacteristic(this.Characteristic.Saturation).updateValue(message[changed_key]);
-              existingAccessory.context.saturation = message[changed_key];
-              break;
-            case 'color_temp':
-              current_service!.getCharacteristic(this.Characteristic.ColorTemperature).updateValue(message[changed_key]);
-              existingAccessory.context.color_temp = message[changed_key];
-              break;
-          }
+      const devices_to_update = group_id === 0 ? [group.name, ...group.aliases] : [group.aliases[group_id-1]];
+      this.updateStates(devices_to_update, message);
+    }
+  }
+
+  // Synchronize group updates (if main group changes, all lights changes too)
+  async synchronizeGroup(name: string, state: object) {
+    const group = this.config.groups.find(g => g.name === name);
+
+    if (group) {
+      const devices_to_update = group.aliases;
+      this.updateStates(devices_to_update, state);
+    }
+  }
+
+  async updateStates(aliases: string[], state: object) {
+    const changed_key = Object.keys(state)[0];
+    this.log.debug('Sync ' + aliases.toString());
+    for (const device of aliases) {
+      const existingAccessory = this.accessories.find(accessory => accessory.displayName === device);
+      if (existingAccessory) {
+        const current_service = existingAccessory.getService(this.Service.Lightbulb);
+        switch(changed_key) {
+          case 'state':
+            current_service!.getCharacteristic(this.Characteristic.On).updateValue(state[changed_key] === 'ON' ? 1 : 0);
+            existingAccessory.context.state = state[changed_key] === 'ON' ? 1 : 0;
+            break;
+          case 'brightness':
+            current_service!.getCharacteristic(this.Characteristic.Brightness).updateValue(Math.round(state[changed_key] / 2.55));
+            existingAccessory.context.brightness = Math.round(state[changed_key] / 2.55);
+            break;
+          case 'level':
+            current_service!.getCharacteristic(this.Characteristic.Brightness).updateValue(state[changed_key]);
+            existingAccessory.context.brightness = state[changed_key];
+            break;
+          case 'hue':
+            current_service!.getCharacteristic(this.Characteristic.Hue).updateValue(state[changed_key]);
+            existingAccessory.context.hue = state[changed_key];
+            break;
+          case 'saturation':
+            current_service!.getCharacteristic(this.Characteristic.Saturation).updateValue(state[changed_key]);
+            existingAccessory.context.saturation = state[changed_key];
+            break;
+          case 'color_temp':
+            current_service!.getCharacteristic(this.Characteristic.ColorTemperature).updateValue(state[changed_key]);
+            existingAccessory.context.color_temp = state[changed_key];
+            break;
         }
       }
     }
   }
+
 }

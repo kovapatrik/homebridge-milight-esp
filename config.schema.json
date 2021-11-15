@@ -1,5 +1,5 @@
 {
-  "pluginAlias": "ExampleHomebridgePlugin",
+  "pluginAlias": "MiLightESP",
   "pluginType": "platform",
   "singular": true,
   "schema": {
@@ -9,7 +9,51 @@
         "title": "Name",
         "type": "string",
         "required": true,
-        "default": "Example Dynamic Platform"
+        "default": "MiLight ESP"
+      },
+      "ip": {
+        "title": "MiLight Hub IP",
+        "type": "string",
+        "required": true
+      },
+      "username": {
+        "title": "MiLight Hub Username",
+        "type": "string",
+        "required": true
+      },
+      "password": {
+        "title": "MiLight Hub Password",
+        "type": "string",
+        "required": true
+      },
+      "mqtt": {
+        "title": "MQTT Settings",
+        "expandable": true,
+        "type": "object",
+        "properties": {
+          "ip": {
+            "title": "MQTT Broker IP",
+            "type": "string"
+          },
+          "username": {
+            "title": "MQTT Username",
+            "type": "string"
+          },
+          "password": {
+            "title": "MQTT Password",
+            "type": "string"
+          }
+        }
+      },
+      "groups": {
+        "title": "Groups",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            
+          }
+        }
       }
     }
   }

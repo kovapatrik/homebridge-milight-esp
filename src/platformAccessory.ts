@@ -10,6 +10,7 @@ export class MiLightAccessory {
     private readonly platform: MiLightPlatform,
     private readonly accessory: PlatformAccessory,
     private readonly alias: string,
+    private readonly sync: boolean,
   ) {
 
     // The REST API won't return the color/white mode settings if the current mode is white/color,
@@ -20,6 +21,7 @@ export class MiLightAccessory {
     this.accessory.context.hue = 20;
     this.accessory.context.saturation = 100;
     this.accessory.context.color_temp = 157;
+    this.accessory.context.sync = this.sync;
 
     // set accessory information
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
@@ -65,6 +67,10 @@ export class MiLightAccessory {
     this.platform.log.debug(this.alias + ' turned ' + send.state + '.');
 
     this.accessory.context.state = value;
+
+    if (this.accessory.context.sync) {
+      this.platform.synchronizeGroup(this.alias, send);
+    }
   }
 
   async getOn(): Promise<CharacteristicValue> {
@@ -78,6 +84,10 @@ export class MiLightAccessory {
     this.platform.log.debug(this.alias + ' brightness set to ' + value + '%.');
 
     this.accessory.context.brightness = value;
+
+    if (this.accessory.context.sync) {
+      this.platform.synchronizeGroup(this.alias, send);
+    }
   }
 
   async getBrightness(): Promise<CharacteristicValue> {
@@ -91,6 +101,10 @@ export class MiLightAccessory {
     this.platform.log.debug(this.alias + ' hue set to ' + value + '.');
 
     this.accessory.context.hue = value;
+
+    if (this.accessory.context.sync) {
+      this.platform.synchronizeGroup(this.alias, send);
+    }
   }
 
   async getHue(): Promise<CharacteristicValue> {
@@ -104,6 +118,10 @@ export class MiLightAccessory {
     this.platform.log.debug(this.alias + ' saturation set to ' + value + '.');
 
     this.accessory.context.saturation = value;
+
+    if (this.accessory.context.sync) {
+      this.platform.synchronizeGroup(this.alias, send);
+    }
   }
 
   async getSaturation(): Promise<CharacteristicValue> {
@@ -117,7 +135,12 @@ export class MiLightAccessory {
     this.platform.log.debug(this.alias + ' color temperature set to ' + value + '.');
 
     this.accessory.context.color_temp = value;
+
+    if (this.accessory.context.sync) {
+      this.platform.synchronizeGroup(this.alias, send);
+    }
   }
+
 
   async getColorTemperature(): Promise<CharacteristicValue> {
     return this.accessory.context.color_temp;
