@@ -68,7 +68,7 @@
               "items": {
                 "type": "string"
               },
-              "required": true,
+              "required": false,
               "uniqueItems": true,
               "maxItems": 4
             },
