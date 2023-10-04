@@ -57,7 +57,7 @@ export class MiLightPlatform implements DynamicPlatformPlugin {
     const accessoriesToRegister: PlatformAccessory[] = [];
     // loop over the discovered devices and register each one if it has not already been registered
     for (const group of this.config.groups) {
-      const aliases = [group.name, ...group.aliases];
+      const aliases = [group.name, ...group.aliases ?? []];
       for (const device of aliases) {
         const uuid = this.api.hap.uuid.generate(device);
 

@@ -68,7 +68,6 @@
               "items": {
                 "type": "string"
               },
-              "default": [],
               "required": false,
               "uniqueItems": true,
               "maxItems": 4
