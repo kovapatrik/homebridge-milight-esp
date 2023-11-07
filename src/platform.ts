@@ -153,7 +153,7 @@ export class MiLightPlatform implements DynamicPlatformPlugin {
 
   updateStates(group_name: string, aliases: string[], state: object) {
     const changed_key = Object.keys(state)[0];
-    this.log.debug('Sync ' + aliases.toString());
+    this.log.debug('Sync ' + aliases.join(', ') + ' with ' + changed_key + ' = ' + state[changed_key]);
     for (const device of aliases) {
       const uuid = this.api.hap.uuid.generate(`${group_name}:${device}`);
       const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
