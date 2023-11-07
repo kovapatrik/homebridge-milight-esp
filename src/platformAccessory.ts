@@ -15,7 +15,7 @@ export class MiLightAccessory {
 
     // The REST API won't return the color/white mode settings if the current mode is white/color,
     // so I added default values to them.
-    // They will be updated as soon as the lights go into color or white mode, so don't worry.
+    // They will be updated as soon as the lights go into color or white mode.
     this.accessory.context.state = false;
     this.accessory.context.brightness = 50;
     this.accessory.context.hue = 20;
@@ -63,7 +63,7 @@ export class MiLightAccessory {
   async setOn(value: CharacteristicValue) {
     value = value as boolean;
     const send = {state: value ? 'ON' : 'OFF'};
-    this.platform.mqtt_client.publish('milight/' + this.alias, JSON.stringify(send));
+    this.platform.mqtt_client!.publish('milight/' + this.alias, JSON.stringify(send));
     this.platform.log.debug(this.alias + ' turned ' + send.state + '.');
 
     this.accessory.context.state = value;
@@ -80,7 +80,7 @@ export class MiLightAccessory {
   async setBrightness(value: CharacteristicValue) {
     value = value as number;
     const send = { level: value };
-    this.platform.mqtt_client.publish('milight/' + this.alias, JSON.stringify(send));
+    this.platform.mqtt_client!.publish('milight/' + this.alias, JSON.stringify(send));
     this.platform.log.debug(this.alias + ' brightness set to ' + value + '%.');
 
     this.accessory.context.brightness = value;

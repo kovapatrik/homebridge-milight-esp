@@ -4,6 +4,7 @@ import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import { MiLightAccessory } from './platformAccessory';
 import { connect, MqttClient } from 'mqtt';
+import { Config, defaultConfig, defaultGroupConfig } from './utils';
 
 /**
  * HomebridgePlatform
@@ -16,15 +17,57 @@ export class MiLightPlatform implements DynamicPlatformPlugin {
 
   // this is used to track restored cached accessories
   public readonly accessories: PlatformAccessory[] = [];
-  public mqtt_client!: MqttClient;
+  public mqtt_client: MqttClient;
+  private platformConfig: PlatformConfig & Config;
 
   constructor(
     public readonly log: Logger,
     public readonly config: PlatformConfig,
     public readonly api: API,
   ) {
-    this.log.debug('Finished initializing platform:', this.config.name);
 
+    // Apply default config
+    this.platformConfig = {
+      ...defaultConfig,
+      ...config,
+    };
+    this.platformConfig.groups = this.platformConfig.groups.map(g => {
+      return {
+        ...defaultGroupConfig,
+        ...g,
+      };
+    });
+
+    this.log.debug('Finished initializing platform:', this.platformConfig.name);
+    this.mqtt_client = {} as MqttClient;
+    try {
+      this.mqtt_client = connect(this.platformConfig.mqtt.ip, {
+        username: this.platformConfig.mqtt.username,
+        password: this.platformConfig.mqtt.password,
+        port: this.platformConfig.mqtt.port,
+      });
+      this.mqtt_client.on('connect', () => {
+        this.log.debug('MQTT connection succeed!');
+        this.mqtt_client!.subscribe('milight/updates/#', (err) => {
+          if (!err) {
+            this.log.debug('MQTT subscription succeed!');
+            this.mqtt_client!.on('message', (topic, message) => {
+              this.synchronizeStatesMQTT(JSON.parse(message.toString()), topic);
+            });
+          } else {
+            this.log.error('MQTT subscription failed.');
+          }
+        });
+      });
+
+      this.mqtt_client.on('error', (err) => {
+        this.log.error('MQTT connection failed: ' + err.message);
+      });
+    } catch (err) {
+      this.log.error('MQTT connection failed: ' + err);
+      this.log.error('Plugin will not work without MQTT connection, terminating plugin...');
+      return;
+    }
     // When this event is fired it means Homebridge has restored all cached accessories from disk.
     // Dynamic Platform plugins should only register new accessories after this event was fired,
     // in order to ensure they weren't added to homebridge already. This event can also be used
@@ -32,8 +75,7 @@ export class MiLightPlatform implements DynamicPlatformPlugin {
     this.api.on('didFinishLaunching', async () => {
       log.debug('Executed didFinishLaunching callback');
       // run the method to discover / register your devices as accessories
-      await this.loadDevices();
-      await this.initMQTT();
+      this.loadDevices();
     });
   }
 
@@ -48,18 +90,13 @@ export class MiLightPlatform implements DynamicPlatformPlugin {
     this.accessories.push(accessory);
   }
 
-  /**
-   * This is an example method showing how to register discovered accessories.
-   * Accessories must only be registered once, previously created accessories
-   * must not be registered again to prevent "duplicate UUID" errors.
-   */
-  async loadDevices() {
+  loadDevices() {
     const accessoriesToRegister: PlatformAccessory[] = [];
     // loop over the discovered devices and register each one if it has not already been registered
-    for (const group of this.config.groups) {
-      const aliases = [group.name, ...group.aliases ?? []];
+    for (const group of this.platformConfig.groups) {
+      const aliases = [group.name, ...group.aliases];
       for (const device of aliases) {
-        const uuid = this.api.hap.uuid.generate(device);
+        const uuid = this.api.hap.uuid.generate(`${group.name}:${device}`);
 
         const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
 
@@ -87,63 +124,39 @@ export class MiLightPlatform implements DynamicPlatformPlugin {
     if (accessoriesToRegister.length) {
       this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, accessoriesToRegister);
     }
-
-  }
-
-  async initMQTT() {
-    this.mqtt_client = connect(this.config.mqtt.ip, {
-      username: this.config.mqtt.username || '',
-      password: this.config.mqtt.password || '',
-      port: this.config.mqtt.port || 1883,
-    });
-
-    this.mqtt_client.on('connect', () => {
-      this.log.debug('MQTT connection succeed!');
-      this.mqtt_client.subscribe('milight/updates/#', (err) => {
-        if (!err) {
-          this.log.debug('MQTT subscription succeed!');
-          this.mqtt_client.on('message', (topic, message) => {
-            this.synchronizeStatesMQTT(JSON.parse(message.toString()), topic);
-          });
-        } else {
-          this.log.error('MQTT subscription failed.');
-        }
-      });
-    });
-
-    this.mqtt_client.on('error', (err) => {
-      this.log.error('MQTT connection failed: ' + err.message);
-    });
   }
 
   // Synchronize state updates coming from another remotes (ids defined in config)
-  async synchronizeStatesMQTT(message: object, topic: string) {
+  synchronizeStatesMQTT(message: object, topic: string) {
     const splitted = topic.split('/');
     const device_id = splitted[2];
     const group_id = Number(splitted[4]);
-    const group = this.config.groups.find(g => 'ids_to_listen_on' in g && g.ids_to_listen_on.includes(device_id));
+    const group = this.platformConfig.groups.find(g => g.ids_to_listen_on.includes(device_id));
 
     if (group) {
-      const devices_to_update = group_id === 0 ? [group.name, ...group.aliases] : [group.aliases[group_id-1]];
-      this.updateStates(devices_to_update, message);
+      const devices_to_update = group_id === 0 ? [group.name, ...group.aliases] : group.aliases.length > group_id-1 ? [group.aliases[group_id-1]] : [];
+      if (devices_to_update.length > 0) {
+        this.updateStates(group.name, devices_to_update, message);
+      }
     }
   }
 
   // Synchronize group updates (if main group changes, all lights changes too)
-  async synchronizeGroup(name: string, state: object) {
-    const group = this.config.groups.find(g => g.name === name);
+  synchronizeGroup(name: string, state: object) {
+    const group = this.platformConfig.groups.find(g => g.name === name);
 
     if (group) {
       const devices_to_update = group.aliases;
-      this.updateStates(devices_to_update, state);
+      this.updateStates(group.name, devices_to_update, state);
     }
   }
 
-  async updateStates(aliases: string[], state: object) {
+  updateStates(group_name: string, aliases: string[], state: object) {
     const changed_key = Object.keys(state)[0];
     this.log.debug('Sync ' + aliases.toString());
     for (const device of aliases) {
-      const existingAccessory = this.accessories.find(accessory => accessory.displayName === device);
+      const uuid = this.api.hap.uuid.generate(`${group_name}:${device}`);
+      const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
       if (existingAccessory) {
         const current_service = existingAccessory.getService(this.Service.Lightbulb);
         switch(changed_key) {

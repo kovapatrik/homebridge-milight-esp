@@ -29,19 +29,29 @@
       "mqtt": {
         "title": "MQTT Settings",
         "expandable": true,
+        "required": true,
         "type": "object",
         "properties": {
           "ip": {
             "title": "MQTT Broker IP",
-            "type": "string"
+            "type": "string",
+            "required": true
+          },
+          "port": {
+            "title": "MQTT Broker Port",
+            "type": "number",
+            "required": true,
+            "default": 1883
           },
           "username": {
             "title": "MQTT Username",
-            "type": "string"
+            "type": "string",
+            "required": true
           },
           "password": {
             "title": "MQTT Password",
-            "type": "string"
+            "type": "string",
+            "required": true
           }
         }
       },
